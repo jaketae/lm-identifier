@@ -1,0 +1,21 @@
+[tool.poetry]
+name = "lm-identifier"
+version = "0.0.1"
+description = "a Python library for identifying pretrained language models from generated text"
+authors = ["Jaesung Tae <jaesungtae@gmail.com>"]
+license = "MIT"
+readme = "README.md"
+packages = [{include = "src/lm_identifier"}]
+
+[tool.poetry.dependencies]
+python = "^3.8"
+numpy = "^1.24.1"
+transformers = "^4.25.1"
+torch = "^1.13.1"
+
+[tool.poetry.group.dev.dependencies]
+pre-commit = "^2.21.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
