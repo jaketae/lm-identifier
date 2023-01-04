@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "lm-identifier"
 version = "0.0.1"
-description = "a Python library for identifying pretrained language models from generated text"
+description = "A toolkit for identifying pretrained language models from AI-generated text"
 authors = ["Jaesung Tae <jaesungtae@gmail.com>"]
 license = "MIT"
 readme = "README.md"

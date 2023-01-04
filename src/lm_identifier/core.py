@@ -7,22 +7,24 @@ from transformers.tokenization_utils_base import BatchEncoding
 
 def rank(
     text: str,
-    model_names: List[str],
+    model_ids: List[str],
     stride: int = 512,
     device: Union[str, torch.device] = "cpu",
 ):
     # TODO: parallelize
     # TODO: support batches
-    result = {}
-    for model_name in model_names:
-        tokenizer = AutoTokenizer.from_pretrained(model_name)
+    model2ppl = {}
+    for model_id in model_ids:
+        model = AutoModelForCausalLM.from_pretrained(model_id)
+        model.eval()
+        model.to(device)
+        tokenizer = AutoTokenizer.from_pretrained(model_id)
         encodings = tokenizer(text, return_tensors="pt")
-        model = AutoModelForCausalLM.from_pretrained(model_name)
         perplexity = get_perplexity(model, encodings, stride, device)
-        result[model_name] = perplexity
+        model2ppl[model_id] = perplexity
     return {
-        model_name: perplexity
-        for model_name, perplexity in sorted(result.items(), reverse=True)
+        model_id: perplexity
+        for model_id, perplexity in sorted(model2ppl.items(), reverse=True)
     }
 
 
@@ -33,6 +35,7 @@ def get_perplexity(
     stride: int,
     device: Union[str, torch.device] = "cpu",
 ) -> float:
+    # from https://huggingface.co/docs/transformers/perplexity
     nlls = []
     prev_end_loc = 0
     max_length = model.config.n_positions
@@ -41,7 +44,7 @@ def get_perplexity(
     model.to(device)
     for begin_loc in range(0, seq_len, stride):
         end_loc = min(begin_loc + max_length, seq_len)
-        trg_len = end_loc - prev_end_loc  # may be different from stride on last loop
+        trg_len = end_loc - prev_end_loc
         input_ids = encodings.input_ids[:, begin_loc:end_loc].to(device)
         target_ids = input_ids.clone()
         target_ids[:, :-trg_len] = -100
@@ -51,5 +54,5 @@ def get_perplexity(
         prev_end_loc = end_loc
         if end_loc == seq_len:
             break
-    ppl = torch.exp(torch.stack(nlls).sum() / end_loc)
+    ppl = torch.exp(torch.stack(nlls).sum() / end_loc).item()
     return ppl
