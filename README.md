@@ -42,14 +42,17 @@ candidate_models = [
     "lvwerra/gpt2-imdb",
 ]
 
-text = "My name is Thomas and my main character is a young man who is a member of the military."
+text = (
+    "My name is Thomas and my main character"
+    "is a young man who is a member of the military."
+)
 
 model2perplexity = rank(text, candidate_models)
 ```
 
 `model2perplexity` is a dictionary of perplexity scores for each language model in sorted order.
 
-```
+```python
 {
     'lvwerra/gpt2-imdb': 13.910672187805176,
     'gpt2': 16.332365036010742,
