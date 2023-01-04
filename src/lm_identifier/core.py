@@ -38,7 +38,7 @@ def get_perplexity(
     # from https://huggingface.co/docs/transformers/perplexity
     nlls = []
     prev_end_loc = 0
-    max_length = model.config.n_positions
+    max_length = model.config.max_length
     seq_len = encodings.input_ids.size(1)
     model.eval()
     model.to(device)
