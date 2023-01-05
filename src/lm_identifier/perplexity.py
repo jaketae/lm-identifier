@@ -1,31 +1,19 @@
 from typing import List, Union
 
 import torch
-from transformers import AutoModelForCausalLM, AutoTokenizer, PreTrainedModel
+from transformers import PreTrainedModel
 from transformers.tokenization_utils_base import BatchEncoding
 
+from .base import rank_by
 
-def rank(
+
+def rank_by_perplexity(
     text: str,
     model_ids: List[str],
     stride: int = 512,
     device: Union[str, torch.device] = "cpu",
 ):
-    # TODO: parallelize
-    # TODO: support batches
-    model2ppl = {}
-    for model_id in model_ids:
-        model = AutoModelForCausalLM.from_pretrained(model_id)
-        model.eval()
-        model.to(device)
-        tokenizer = AutoTokenizer.from_pretrained(model_id)
-        encodings = tokenizer(text, return_tensors="pt")
-        perplexity = get_perplexity(model, encodings, stride, device)
-        model2ppl[model_id] = perplexity
-    return {
-        model_id: perplexity
-        for model_id, perplexity in sorted(model2ppl.items(), reverse=True)
-    }
+    return rank_by(text, model_ids, get_perplexity, stride, device)
 
 
 @torch.inference_mode()
@@ -35,7 +23,7 @@ def get_perplexity(
     stride: int,
     device: Union[str, torch.device] = "cpu",
 ) -> float:
-    # from https://huggingface.co/docs/transformers/perplexity
+    # adapted from https://huggingface.co/docs/transformers/perplexity
     nlls = []
     prev_end_loc = 0
     max_length = model.config.max_length
